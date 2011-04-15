@@ -1,0 +1,59 @@
+What's it all about?
+=====================
+With this behavior, you can generate an URI for a single or combination of
+columns in your table.
+
+Imagine a blog table
+<pre>
+| id | category | title                             |
+|----+----------+-----------------------------------|
+|  1 | security | NASA Server hacked by hacker kids |
+| ...
+</pre>
+
+So you'd like a better URL than
+--------------------------------
+*http://your-blog.org/index.php?r=blog/show&id=1422*
+
+... so what about ...
+----------------------
+*http://your-blog.org/security/nasa-server-hacked-by-hacker-kids*
+
+**Google will love you** ;)
+
+For this simple approach, just add another column called "*slug*" to your
+table and and this extension will create the "slugs" every time you save a new
+or updated an existing record.
+
+How to get it done
+==================
+Simply download the SluggableBehavior.php and drop it into your protected/extensions folder, 
+or **if you're using git**, use this:
+<pre>
+cd &lt;YOUR YII-PROJECT&gt;
+mkdir protected/behaviors (optional)
+git submodule add git://github.com/mintao/yii-behavior-sluggable.git protected/extensions/behaviors/SluggableBehavior
+</pre>
+
+Add this behavior to every model you need
+------------------------------------------
+<pre>
+/**
+ * Behaviors for this model
+ */
+  public function behaviors(){
+    return array(
+      'sluggable' => array(
+      'class'=>'ext.behaviors.SluggableBehavior.SluggableBehavior',
+      'columns' => array('category', 'title'),
+      'unique' => true,
+    ),
+  );
+}
+</pre>
+
+**class** Defines the path where to find the SluggableBehavor.php  
+
+**columns** Needs to be an array of the fields to use for slug creation
+
+**unique** Set this to true to ensure a unique slug (Numbers will be added to duplicate slugs, if already existing)
