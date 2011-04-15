@@ -1,4 +1,4 @@
-git commit -m 'first commit'<?php
+<?php
 /**
  * Sluggable Behavior for Yii Framework.
  *
