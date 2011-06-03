@@ -88,7 +88,7 @@ class SluggableBehavior extends CActiveRecordBehavior
 
         // Check if slug has to be unique
         if (false === $this->unique
-            || (! $this->isNewRecord && $this->owner->slug === $slug)
+            || (! $this->owner->isNewRecord && $this->owner->slug === $slug)
         )
         {
             $this->owner->slug = $slug;
