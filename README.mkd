@@ -69,3 +69,4 @@ Download this extension (and fork it):
 Changelog
 ---------
 * 2011-04-30 Added _update_ functionality
+* 2011-06-23 Added support for dependent models (see demo configuration, author.name)
