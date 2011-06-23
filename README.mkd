@@ -49,7 +49,7 @@ public function behaviors(){
   return array(
     'sluggable' => array(
       'class'=>'ext.behaviors.SluggableBehavior.SluggableBehavior',
-      'columns' => array('category', 'title'),
+      'columns' => array('category', 'title', 'author.name'),
       'unique' => true,
       'update' => true,
     ),
@@ -69,3 +69,8 @@ Download this extension (and fork it):
 Changelog
 ---------
 * 2011-04-30 Added _update_ functionality
+* 2011-06-23 Added support for dependent models (see demo configuration, author.name)
+q
+p
+r
+* 
