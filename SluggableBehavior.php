@@ -9,8 +9,18 @@
  * @version $Id: SluggableBehavior.php 530 2011-04-30 23:31:12Z florian.fackler $
  * @package components
  */
-include __DIR__ . '/Doctrine_Inflector.php';
+include_once __DIR__ . '/Doctrine_Inflector.php';
 
+/**
+ * SluggableBehavior
+ *
+ * @uses CActiveRecordBehavior
+ * @package
+ * @version $id$
+ * @copyright 2011 mintao GmbH & Co. KG
+ * @author Florian Fackler <florian.fackler@mintao.com>
+ * @license PHP Version 3.0 {@link http://www.php.net/license/3_0.txt}
+ */
 class SluggableBehavior extends CActiveRecordBehavior
 {
     /**
@@ -47,10 +57,17 @@ class SluggableBehavior extends CActiveRecordBehavior
      */
     protected $_defaultColumnsToCheck = array('name', 'title');
 
+    /**
+     * beforeSave
+     *
+     * @param mixed $event
+     * @access public
+     * @return void
+     */
     public function beforeSave($event)
     {
         // Slug already created and no updated needed
-        if (true !== $this->update && ! empty($this->owner->{$this->slugColumn})) {
+        if (true !== $this->update && ! empty($this->getOwner()->{$this->slugColumn})) {
             Yii::trace(
                 'Slug found - no update needed.',
                 __CLASS__ . '::' . __FUNCTION__
@@ -66,7 +83,7 @@ class SluggableBehavior extends CActiveRecordBehavior
             throw new CException('Columns have to be in array format.');
         }
 
-        $availableColumns = array_keys($this->owner->tableSchema->columns);
+        $availableColumns = array_keys($this->getOwner()->tableSchema->columns);
 
         // Try to guess the right columns
         if (0 === count($this->columns)) {
@@ -81,7 +98,7 @@ class SluggableBehavior extends CActiveRecordBehavior
                     if (false !== strpos($col, '.')) {
                         Yii::trace(
                             'Dependencies to related models found',
-                            __CLASS__.'::'.__FUNCTION__
+                            __CLASS__
                         );
                         list($model, $attribute) = explode('.', $col);
                         $externalColumns = array_keys(
@@ -112,7 +129,7 @@ class SluggableBehavior extends CActiveRecordBehavior
         $values = array();
         foreach ($this->columns as $col) {
             if (false === strpos($col, '.')) {
-               $values[] = $this->owner->$col;
+                $values[] = $this->getOwner()->$col;
             } else {
                 list($model, $attribute) = explode('.', $col);
                 $values[] = $this->getOwner()->$model->$attribute;
@@ -125,19 +142,16 @@ class SluggableBehavior extends CActiveRecordBehavior
         );
 
         // Check if slug has to be unique
-        if (false === $this->unique
-            || (! $this->owner->isNewRecord && $this->owner->{$this->slugColumn} === $slug)
-        )
-        {
-            $this->owner->{$this->slugColumn} = $slug;
+        if (false === $this->unique || (! $this->getOwner()->isNewRecord && $slug === $this->getOwner()->{$this->slugColumn})) {
+            Yii::trace('Non unique slug or slug already set', __CLASS__);
+            $this->getOwner()->{$this->slugColumn} = $slug;
         } else {
             $counter = 0;
-            while ($this->owner->findByAttributes(
-                array($this->slugColumn => $checkslug))
-            ) {
+            while ($this->getOwner()->resetScope()->findByAttributes(array($this->slugColumn => $checkslug))) {
+                Yii::trace("$checkslug found, iterating", __CLASS__);
                 $checkslug = sprintf('%s-%d', $slug, ++$counter);
             }
-            $this->owner->{$this->slugColumn} = $counter > 0 ? $checkslug : $slug;
+            $this->getOwner()->{$this->slugColumn} = $counter > 0 ? $checkslug : $slug;
         }
         return parent::beforeSave($event);
     }
