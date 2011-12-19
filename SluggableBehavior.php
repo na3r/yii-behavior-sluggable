@@ -51,6 +51,15 @@ class SluggableBehavior extends CActiveRecordBehavior
     public $slugColumn = 'slug';
 
     /**
+     * Inflector can be turned off, so only whitespaces are
+     * replaced by dashes
+     *
+     * @var mixed
+     * @access public
+     */
+    public $useInflector = true;
+
+    /**
      * Default columns to build slug if none given
      *
      * @var array Columns
@@ -83,7 +92,9 @@ class SluggableBehavior extends CActiveRecordBehavior
             throw new CException('Columns have to be in array format.');
         }
 
-        $availableColumns = array_keys($this->getOwner()->tableSchema->columns);
+        $availableColumns = array_keys(
+            $this->getOwner()->tableSchema->columns
+        );
 
         // Try to guess the right columns
         if (0 === count($this->columns)) {
@@ -137,9 +148,15 @@ class SluggableBehavior extends CActiveRecordBehavior
         }
 
         // First version of slug
-        $slug = $checkslug = Doctrine_Inflector::urlize(
-            implode('-', $values)
-        );
+        if (true === $this->useInflector) {
+            $slug = $checkslug = Doctrine_Inflector::urlize(
+                implode('-', $values)
+            );
+        } else {
+            $slug = $checkslug = $this->simpleSlug(
+                implode('-', $values)
+            );
+        }
 
         // Check if slug has to be unique
         if (false === $this->unique || (! $this->getOwner()->isNewRecord && $slug === $this->getOwner()->{$this->slugColumn})) {
@@ -154,6 +171,21 @@ class SluggableBehavior extends CActiveRecordBehavior
             $this->getOwner()->{$this->slugColumn} = $counter > 0 ? $checkslug : $slug;
         }
         return parent::beforeSave($event);
+    }
+
+    /**
+     * Create a simple slug by just lower casing and replacing white spaces
+     *
+     * @param string $str
+     * @access protected
+     * @return void
+     */
+    protected function simpleSlug($str)
+    {
+        $slug = preg_replace('@[\s!:;_\?=\\\+\*/%&#]+@', '-', $str);
+        $slug = mb_strtolower($slug, Yii::app()->charset);
+        $slug = trim($slug, '-');
+        return $slug;
     }
 }
 
