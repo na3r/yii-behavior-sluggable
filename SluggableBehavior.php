@@ -60,6 +60,13 @@ class SluggableBehavior extends CActiveRecordBehavior
     public $useInflector = true;
 
     /**
+     * Transform the slug to lower case
+     *
+     * @var boolean
+     * @access public
+     */
+    public $toLower = false;
+    /**
      * Default columns to build slug if none given
      *
      * @var array Columns
@@ -159,12 +166,18 @@ class SluggableBehavior extends CActiveRecordBehavior
         }
 
         // Check if slug has to be unique
-        if (false === $this->unique || (! $this->getOwner()->isNewRecord && $slug === $this->getOwner()->{$this->slugColumn})) {
+        if (false === $this->unique
+            ||
+            (! $this->getOwner()->getIsNewRecord()
+            && $slug === $this->getOwner()->{$this->slugColumn})
+        ) {
             Yii::trace('Non unique slug or slug already set', __CLASS__);
             $this->getOwner()->{$this->slugColumn} = $slug;
         } else {
             $counter = 0;
-            while ($this->getOwner()->resetScope()->findByAttributes(array($this->slugColumn => $checkslug))) {
+            while ($this->getOwner()->resetScope()
+                ->findByAttributes(array($this->slugColumn => $checkslug))
+            ) {
                 Yii::trace("$checkslug found, iterating", __CLASS__);
                 $checkslug = sprintf('%s-%d', $slug, ++$counter);
             }
@@ -174,7 +187,7 @@ class SluggableBehavior extends CActiveRecordBehavior
     }
 
     /**
-     * Create a simple slug by just lower casing and replacing white spaces
+     * Create a simple slug by just replacing white spaces
      *
      * @param string $str
      * @access protected
@@ -183,7 +196,9 @@ class SluggableBehavior extends CActiveRecordBehavior
     protected function simpleSlug($str)
     {
         $slug = preg_replace('@[\s!:;_\?=\\\+\*/%&#]+@', '-', $str);
-        $slug = mb_strtolower($slug, Yii::app()->charset);
+        if (true === $this->toLower) {
+            $slug = mb_strtolower($slug, Yii::app()->charset);
+        }
         $slug = trim($slug, '-');
         return $slug;
     }
